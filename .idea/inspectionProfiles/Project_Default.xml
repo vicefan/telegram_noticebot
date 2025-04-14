@@ -1,0 +1,26 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <value>
+          <list size="13">
+            <item index="0" class="java.lang.String" itemvalue="plaster" />
+            <item index="1" class="java.lang.String" itemvalue="translationstring" />
+            <item index="2" class="java.lang.String" itemvalue="venusian" />
+            <item index="3" class="java.lang.String" itemvalue="folium" />
+            <item index="4" class="java.lang.String" itemvalue="branca" />
+            <item index="5" class="java.lang.String" itemvalue="zope.deprecation" />
+            <item index="6" class="java.lang.String" itemvalue="hupper" />
+            <item index="7" class="java.lang.String" itemvalue="pyramid" />
+            <item index="8" class="java.lang.String" itemvalue="PasteDeploy" />
+            <item index="9" class="java.lang.String" itemvalue="WebOb" />
+            <item index="10" class="java.lang.String" itemvalue="plaster-pastedeploy" />
+            <item index="11" class="java.lang.String" itemvalue="selenium" />
+            <item index="12" class="java.lang.String" itemvalue="streamlit-keyup" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
