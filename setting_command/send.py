@@ -1,5 +1,6 @@
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
+import requests
 
 
 # 토큰을 bot_token 변수에 저장
@@ -8,14 +9,12 @@ bot_token = '7740506271:AAFBPW0-YX91kXIvnQOshElW3mW2ncZb9MQ'
 
 # start 명령어 처리 함수
 async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    url = "https://44c12bce-9acf-44c9-83fa-3dec01d9eec7-00-3bvwipr0c4ky8.sisko.replit.dev/sendmsg"
 
-    send_msg = "[채팅방 시작]\n퀀트매니아 채팅방에 오신 것을 환영합니다.\n/help : 채팅방 사용법"
-
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=send_msg)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=requests.get(url).text)
 
 
 if __name__ == '__main__':
-
     # 챗봇 application 인스턴스 생성
     application = ApplicationBuilder().token(bot_token).build()
 
