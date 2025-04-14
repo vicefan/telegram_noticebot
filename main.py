@@ -1,3 +1,4 @@
+import os
 import telepot
 import requests
 from bs4 import BeautifulSoup
@@ -5,11 +6,11 @@ from bs4 import BeautifulSoup
 
 class Telegram():
     def __init__(self):
-        my_token = "7740506271:AAFBPW0-YX91kXIvnQOshElW3mW2ncZb9MQ"
+        my_token = os.getenv("TOKEN")
         self.bot = telepot.Bot(token=my_token)
 
     def sendMessage(self, message):
-        self.bot.sendMessage("8024833881", message)
+        self.bot.sendMessage(os.getenv("CHAT_ID"), message)
 
     def getUpdates(self):
         return self.bot.getUpdates()
