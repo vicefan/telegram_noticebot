@@ -64,6 +64,10 @@ def send_notice():
     bot.sendMessage(msg)
     return "공지사항을 텔레그램으로 전송했어요!"
 
+@app.route("/sendmsg")
+def send_msg():
+    return Telegram.update_msg()
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=3000)
