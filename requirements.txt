@@ -2,3 +2,6 @@ telepot
 requests
 beautifulsoup4
 flask
+asyncio
+python-telegram-bot
+telegram
