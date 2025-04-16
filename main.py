@@ -7,6 +7,9 @@ import telepot
 import threading
 from flask import Flask
 import asyncio
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 bot_token = os.getenv("TOKEN")
