@@ -65,10 +65,41 @@ def get_notice_msg():
 
         html = f"""
         <html>
-            <body>
-                <h2>🗒️ 공지사항 정리 🗒️</h2>
-                {html_apsl}
-                {html_inha}
+            <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #fefefe; color: #5b6a69; font-size: 16px; line-height: 1.6;">
+                <table style="border-spacing: 0; border-collapse: collapse; width: 100%; background-color: #fefefe; text-align: left; margin: 0; padding: 0;">
+                    <tbody>
+                        <tr>
+                            <td align="center" valign="top" style="margin: 0; padding: 0; line-height: 130%; text-align: left; border-collapse: collapse;">
+                                <center style="width: 100%; min-width: 500px;">
+                                    <table align="center" style="border-spacing: 0; border-collapse: collapse; padding: 0; width: 100%; min-width: 100%;">
+                                        <tbody>
+                                            <img src="https://i.ibb.co/27Kh0cQy/vice.gif" alt="공지사항 GIF" style="max-width: 100%; height: auto; border-radius: 5px;">
+                                            <tr>
+                                                <td style="padding: 20px; background-color: #ffffff; border: 1px solid #ddd; border-radius: 5px;">
+                                                    {html_apsl}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 20px; background-color: #ffffff; border: 1px solid #ddd; border-radius: 5px;">
+                                                    {html_inha}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 10px; text-align: center; background-color: #f1f1f1; color: #555; font-size: 12px;">
+                                                    <p>본 메일은 자동 발송된 메일입니다.</p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 20px; text-align: center;">
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </center>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </body>
         </html>
         """
