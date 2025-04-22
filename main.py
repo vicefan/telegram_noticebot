@@ -106,6 +106,29 @@ async def email(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"오류 발생: {e}")
 
+
+async def add(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        key = context.args[0]
+        value = context.args[1]
+
+        if not os.path.exists(EMAIL_SCHEDULE_FILE):
+            with open(EMAIL_SCHEDULE_FILE, "w") as f:
+                json.dump({}, f)
+        
+        with open(EMAIL_SCHEDULE_FILE, "r") as f:
+            schedules = json.load(f)
+
+        schedules[key] = value
+
+        with open(EMAIL_SCHEDULE_FILE, "w") as f:
+            json.dump(schedules, f, indent=4)
+
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"이메일 {value}로 매일 {EMAIL_TIME}에 공지사항이 전송됩니다.")
+    except IndexError:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="이메일 주소를 입력해주세요. 용법: /add name email")
+
+
 async def send_me_email(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_log(update.effective_chat.id, "/send_email")
     html = get_notice_msg()
@@ -172,6 +195,7 @@ def main():
     application.add_handler(CommandHandler("email", email))
     application.add_handler(CommandHandler("delete", delete))
     application.add_handler(CommandHandler("send_email", send_me_email))
+    application.add_handler(CommandHandler("add", add))
     application.run_polling()
 
 if __name__ == "__main__":
