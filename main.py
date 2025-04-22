@@ -1,5 +1,5 @@
 import time
-from flask import Flask, send_file
+from flask import Flask, send_file, abort, request
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from tools import get_notice_msg, save_log, send_email
@@ -16,7 +16,7 @@ bot_token = os.getenv("TOKEN")
 chat_id = os.getenv("CHAT_ID")
 mail_adr = os.getenv("MAIL")
 app_pwd = os.getenv("APP_PW")
-EMAIL_TIME = "09:00"
+EMAIL_TIME = "09:50"
 
 EMAIL_SCHEDULE_FILE = "email_schedule.json"
 
@@ -66,18 +66,26 @@ def send_scheduled_email(chat_id, email_address):
     )
     print(f"이메일이 {email_address}로 전송되었습니다!")
 
+@app.before_request
+def verify_token():
+    token = os.getenv("KEY")
+    if request.args.get("key") != token:
+        abort(403)
+        print("key error")
+
 @app.route("/")
 def home():
     return send_file("vice.gif", mimetype="image/gif")
 
-async def send(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    save_log(update.effective_chat.id, "/send")
-    html = get_notice_msg()
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=html)
+@app.route("/notice")
+def notice():
+    return get_notice_msg()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     save_log(update.effective_chat.id, "/start")
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="공지사항을 확인하려면 /send 명령어를 사용하세요.")
+    with open("vice.gif", "rb") as img:
+        await context.bot.send_message(chat_id=update.effective_chat.id, photo=img, caption="viceversa")
+
 
 # /email 명령어 핸들러
 async def email(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -139,12 +147,14 @@ async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # 스케줄 실행 루프
 def run_schedule():
+    schedule.clear()
+    schedule_email_tasks()
     while True:
         schedule.run_pending()
         time.sleep(1)
 
 def run_flask():
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port="3000")
 
 def main():
     flask_thread = threading.Thread(target=run_flask)
@@ -159,7 +169,6 @@ def main():
     # Telegram Bot 실행
     application = ApplicationBuilder().token(bot_token).build()
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("send", send))
     application.add_handler(CommandHandler("email", email))
     application.add_handler(CommandHandler("delete", delete))
     application.add_handler(CommandHandler("send_email", send_me_email))
