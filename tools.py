@@ -3,114 +3,111 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import requests
 from bs4 import BeautifulSoup
-from collections import defaultdict
 from datetime import datetime
 
-# 날짜별 공지사항 그룹화
-def group_notices_by_date(titles, dates):
-    grouped_notices = defaultdict(list)
-    for title, date in zip(titles, dates):
-        grouped_notices[date].append(title)
-    return grouped_notices
+def get_news_html():
+    url = "https://news.naver.com/main/ranking/popularDay.naver"
+    headers = {"User-Agent": "Mozilla/5.0"}
+    res = requests.get(url, headers=headers)
+    res.raise_for_status()
+    soup = BeautifulSoup(res.content, 'html.parser')
 
-# HTML 생성
-def format_grouped_notices_as_html(grouped_notices, section_title, url):
-    html = f"""
-    <h3 style="color: #2196F3;">{section_title}</h3>
-    <ul style="list-style-type: none; padding: 0; margin: 0;">
+    # 뉴스 데이터 크롤링
+    news_items = soup.find_all("ul", class_="rankingnews_list")[:10]
+    news_names = [x.text for x in soup.find_all("strong", class_="rankingnews_name")][:10]
+    datas = [{x: []} for x in news_names]
+
+    for i in range(len(news_items)):
+        news_item = news_items[i]
+        news_title = news_item.find("a").text.strip()
+        news_link = news_item.find("a")["href"]
+        datas[i][news_names[i]].append(news_title)
+        datas[i][news_names[i]].append(news_link)
+
+    # HTML 생성
+    html = """
+    <html>
+        <head>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    background-color: #f9f9f9;
+                    color: #333;
+                    padding: 20px;
+                }
+                .news-container {
+                    max-width: 600px;
+                    margin: auto;
+                    background: #fff;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                    padding: 20px;
+                }
+                .news-header {
+                    text-align: center;
+                    color: #4CAF50;
+                    margin-bottom: 20px;
+                }
+                .news-item {
+                    margin-bottom: 15px;
+                    padding: 10px;
+                    border-bottom: 1px solid #ddd;
+                }
+                .news-item:last-child {
+                    border-bottom: none;
+                }
+                .news-title {
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: #2196F3;
+                    text-decoration: none;
+                }
+                .news-title:hover {
+                    text-decoration: underline;
+                }
+                .news-source {
+                    font-size: 14px;
+                    color: #555;
+                }
+                .gif-container {
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="news-container">
+                <div class="gif-container">
+                    <img src="https://i.ibb.co/27Kh0cQy/vice.gif" alt="공지사항 GIF" style="max-width: 100%; height: auto; border-radius: 5px;">
+                </div>
+                <h2 class="news-header">언론사 별 랭킹 1위 뉴스</h2>
     """
-    for date, notices in grouped_notices.items():
-        html += f"""
-        <li style="margin-bottom: 10px;">
-            <strong>{date}</strong>
-            <ul style="list-style-type: none; padding-left: 20px; margin: 0;">
-        """
-        for notice in notices:
-            html += f"<li style='margin-bottom: 5px;'>✅ {notice}</li>"
-        html += "</ul></li>"
-    html += f"""
-    </ul>
-    <p style="margin-top: 10px;">🔗 <a href="{url}" style="color: #FF5722; text-decoration: none;">{section_title} 바로가기</a></p>
+
+    for data in datas:
+        for source, details in data.items():
+            news_title = details[0]
+            news_link = details[1]
+            html += f"""
+                <div class="news-item">
+                    <div class="news-source">{source}</div>
+                    <a href="{news_link}" class="news-title" target="_blank">{news_title}</a>
+                </div>
+            """
+
+    html += """
+            </div>
+        </body>
+    </html>
     """
     return html
 
-# 공지사항 크롤링
-def get_notice_msg():
-    try:
-        url_apsl = "https://apsl.inha.ac.kr/logistics/4465/subview.do"
-        headers = {"User-Agent": "Mozilla/5.0"}
-        res = requests.get(url_apsl, headers=headers)
-        res.raise_for_status()
-        soup = BeautifulSoup(res.content, 'html.parser')
-
-        table = soup.find("table", class_="artclTable artclHorNum1").find("tbody")
-        contents = [x for x in table.find_all("tr") if not x.attrs == {'class': ['headline']}]
-        td_title_apsl = [x.strong.text for x in contents]
-        td_date_apsl = [x.find("td", class_="_artclTdRdate").text for x in contents]
-
-        url_inha = "https://www.inha.ac.kr/kr/950/subview.do"
-        res = requests.get(url_inha, headers=headers)
-        res.raise_for_status()
-        soup = BeautifulSoup(res.content, 'html.parser')
-        table = soup.find("table", class_="artclTable artclHorNum1").find("tbody")
-        contents = [x for x in table.find_all("tr") if not x.attrs == {'class': ['headline']}]
-        td_title_inha = [x.get_text(separator="sep", strip=True).split("sep")[1] for x in contents]
-        td_date_inha = [x.find("td", class_="_artclTdRdate").text for x in contents]
-
-        grouped_apsl = group_notices_by_date(td_title_apsl, td_date_apsl)
-        grouped_inha = group_notices_by_date(td_title_inha, td_date_inha)
-
-        html_apsl = format_grouped_notices_as_html(grouped_apsl, "아태물류학부 공지", url_apsl)
-        html_inha = format_grouped_notices_as_html(grouped_inha, "인하대학교 공지", url_inha)
-
-        html = f"""
-        <html>
-            <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #fefefe; color: #5b6a69; font-size: 16px; line-height: 1.6;">
-                <table style="border-spacing: 0; border-collapse: collapse; width: 100%; background-color: #fefefe; text-align: left; margin: 0; padding: 0;">
-                    <tbody>
-                        <tr>
-                            <td align="center" valign="top" style="margin: 0; padding: 0; line-height: 130%; text-align: left; border-collapse: collapse;">
-                                <center style="width: 100%; min-width: 500px;">
-                                    <table align="center" style="border-spacing: 0; border-collapse: collapse; padding: 0; width: 100%; min-width: 100%;">
-                                        <tbody>
-                                            <img src="https://i.ibb.co/27Kh0cQy/vice.gif" alt="공지사항 GIF" style="max-width: 100%; height: auto; border-radius: 5px;">
-                                            <tr>
-                                                <td style="padding: 20px; background-color: #ffffff; border: 1px solid #ddd; border-radius: 5px;">
-                                                    {html_apsl}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 20px; background-color: #ffffff; border: 1px solid #ddd; border-radius: 5px;">
-                                                    {html_inha}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 10px; text-align: center; background-color: #f1f1f1; color: #555; font-size: 12px;">
-                                                    <p>본 메일은 자동 발송된 메일입니다.</p>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 20px; text-align: center;">
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </center>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </body>
-        </html>
-        """
-        return html
-    except Exception as e:
-        return f"공지사항을 불러오는 데 실패했습니다: {str(e)}"
 
 # 이메일 전송
 def send_email(sender_email, receiver_email, app_password, html):
     message = MIMEMultipart("alternative")
-    message["Subject"] = f"{datetime.now().strftime('%Y-%m-%d')} 공지사항 업데이트"
+    message["Subject"] = f"{datetime.now().strftime('%Y-%m-%d')} 뉴스 크롤링"
     message["From"] = sender_email
     message["To"] = receiver_email
 
@@ -119,10 +116,3 @@ def send_email(sender_email, receiver_email, app_password, html):
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(sender_email, app_password)
         server.sendmail(sender_email, receiver_email, message.as_string())
-
-# 로그 저장
-def save_log(chat_id, command):
-    local_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    log_entry = f"Chat ID: {chat_id}, Command: {command}, Time: {local_time}\n"
-    with open("log.txt", "a") as f:
-        f.write(log_entry)
